@@ -12,14 +12,30 @@
 #define BACKGROUND_WIDTH 740
 #define BACKGROUND_HEIGHT 932
 
+#define MAP_STATE_EMPTY 0
+#define MAP_STATE_VISITED 1
+#define MAP_STATE_EDGE 2
+#define MAP_STATE_VISITING 3
+
+
+enum PlayerState {
+    ON_EDGE,
+    GENERATING,
+};
+
 
 LPDIRECT3DTEXTURE9* backgroundTex;
 LPDIRECT3DTEXTURE9* maskTex;
+LPDIRECT3DTEXTURE9* player;
 
 LPD3DXSPRITE spr;
 
+float playerX = 100;
+float playerY = 300;
+
 
 int maskP[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
+int map[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
 
 
@@ -45,6 +61,28 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_DESC* pBackBufferSurfaceDesc,
                                      void* pUserContext )
 {
+    for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
+    {
+        map[i] = MAP_STATE_EMPTY;
+    }
+    for (int y = 300; y <= 500; y++)
+    {
+        for (int x = 100; x <= 500; x++)
+        {
+            map[y * BACKGROUND_WIDTH + x] = MAP_STATE_VISITED;
+        }
+    }
+
+    for (int y = 300; y <= 500; y++)
+    {
+        map[y * BACKGROUND_WIDTH + 100] = MAP_STATE_EDGE;
+        map[y * BACKGROUND_WIDTH + 500] = MAP_STATE_EDGE;
+    }
+    for (int x = 100; x <= 500; x++)
+    {
+        map[300 * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+        map[500 * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+    }
 
 
     backgroundTex = new LPDIRECT3DTEXTURE9();
@@ -79,6 +117,22 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
         , nullptr
         , maskTex);
 
+    player = new LPDIRECT3DTEXTURE9();
+    D3DXCreateTextureFromFileExA(
+        pd3dDevice
+        , "resource/player.png"
+        , D3DX_DEFAULT_NONPOW2
+        , D3DX_DEFAULT_NONPOW2
+        , 0, 0
+        , D3DFMT_UNKNOWN
+        , D3DPOOL_MANAGED
+        , D3DX_DEFAULT
+        , D3DX_DEFAULT
+        , 0
+        , nullptr
+        , nullptr
+        , player);
+
 
     RECT tdr = { 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT };
     D3DLOCKED_RECT tlr;
@@ -96,13 +150,28 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
     if (SUCCEEDED((*backgroundTex)->LockRect(0, &tlr, &tdr, 0)))
     {
         DWORD* p = (DWORD*)tlr.pBits;
-        for (int y = 100; y < 300; y++)
+        /*for (int y = 100; y < 300; y++)
         {
             for (int x = 100; x < 500; x++)
             {
                 p[y * BACKGROUND_WIDTH + x] = maskP[y * BACKGROUND_WIDTH + x];
             }
+        }*/
+
+
+        for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
+        {
+            if (map[i] == MAP_STATE_EMPTY)
+            {
+                p[i] = maskP[i];
+            }
+            if (map[i] == MAP_STATE_EDGE)
+            {
+                p[i] = D3DCOLOR_ARGB(255, 255, 0, 0);
+            }
         }
+
+
         (*backgroundTex)->UnlockRect(0);
 
     }
@@ -138,6 +207,11 @@ void CALLBACK OnD3D9FrameRender( IDirect3DDevice9* pd3dDevice, double fTime, flo
     {
         spr->Begin(D3DXSPRITE_ALPHABLEND);
         spr->Draw(*backgroundTex, nullptr, nullptr, nullptr, D3DCOLOR_ARGB(255, 255, 255, 255));
+
+        D3DXVECTOR3 pos = { playerX, playerY, 0 };
+        D3DXVECTOR3 cen = { 2, 2, 0 };
+
+        spr->Draw(*player, nullptr, &cen, &pos, D3DCOLOR_ARGB(255, 255, 255, 255));
         spr->End();
 
         V( pd3dDevice->EndScene() );
@@ -161,6 +235,7 @@ void CALLBACK OnD3D9DestroyDevice( void* pUserContext )
 {
     (*backgroundTex)->Release();
     (*maskTex)->Release();
+    (*player)->Release();
     spr->Release();
 }
 
