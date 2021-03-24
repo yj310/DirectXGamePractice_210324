@@ -7,6 +7,10 @@
 #include "resource.h"
 
 
+LPDIRECT3DTEXTURE9* backgroundTex;
+LPDIRECT3DTEXTURE9* maskTex;
+
+LPD3DXSPRITE spr;
 
 
 
@@ -32,6 +36,43 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_DESC* pBackBufferSurfaceDesc,
                                      void* pUserContext )
 {
+
+
+    backgroundTex = new LPDIRECT3DTEXTURE9();
+    D3DXCreateTextureFromFileExA(pd3dDevice
+        , "resource/background.png"
+        , D3DX_DEFAULT_NONPOW2
+        , D3DX_DEFAULT_NONPOW2
+        , 0
+        , 0
+        , D3DFMT_UNKNOWN
+        , D3DPOOL_MANAGED
+        , D3DX_DEFAULT
+        , D3DX_DEFAULT
+        , 0
+        , nullptr
+        , nullptr
+        , backgroundTex);
+
+    maskTex = new LPDIRECT3DTEXTURE9();
+    D3DXCreateTextureFromFileExA(
+        pd3dDevice
+        , "resource/mask.png"
+        , D3DX_DEFAULT_NONPOW2
+        , D3DX_DEFAULT_NONPOW2
+        , 0, 0
+        , D3DFMT_UNKNOWN
+        , D3DPOOL_MANAGED
+        , D3DX_DEFAULT
+        , D3DX_DEFAULT
+        , 0
+        , nullptr
+        , nullptr
+        , maskTex);
+
+
+    D3DXCreateSprite(pd3dDevice, &spr);
+
     return S_OK;
 }
 
@@ -58,6 +99,10 @@ void CALLBACK OnD3D9FrameRender( IDirect3DDevice9* pd3dDevice, double fTime, flo
     // Render the scene
     if( SUCCEEDED( pd3dDevice->BeginScene() ) )
     {
+        spr->Begin(D3DXSPRITE_ALPHABLEND);
+        spr->Draw(*backgroundTex, nullptr, nullptr, nullptr, D3DCOLOR_ARGB(255, 255, 255, 255));
+        spr->End();
+
         V( pd3dDevice->EndScene() );
     }
 }
@@ -77,6 +122,9 @@ void CALLBACK OnD3D9LostDevice( void* pUserContext )
 
 void CALLBACK OnD3D9DestroyDevice( void* pUserContext )
 {
+    (*backgroundTex)->Release();
+    (*maskTex)->Release();
+    spr->Release();
 }
 
 
