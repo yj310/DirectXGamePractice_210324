@@ -57,6 +57,38 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
     return true;
 }
 
+void MapUpdate()
+{
+    RECT tdr = { 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT };
+    D3DLOCKED_RECT tlr;
+
+
+    if (SUCCEEDED((*backgroundTex)->LockRect(0, &tlr, &tdr, 0)))
+    {
+        DWORD* p = (DWORD*)tlr.pBits;
+
+        for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
+        {
+            if (map[i] == MAP_STATE_EMPTY)
+            {
+                p[i] = maskP[i];
+            }
+            if (map[i] == MAP_STATE_EDGE)
+            {
+                p[i] = D3DCOLOR_ARGB(255, 0, 0, 0);
+            }
+            if (map[i] == MAP_STATE_VISITING)
+            {
+                p[i] = D3DCOLOR_ARGB(255, 0, 0, 255);
+            }
+        }
+
+
+        (*backgroundTex)->UnlockRect(0);
+
+    }
+}
+
 
 HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_DESC* pBackBufferSurfaceDesc,
                                      void* pUserContext )
@@ -146,27 +178,8 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
         (*maskTex)->UnlockRect(0);
 
     }
-    
-    if (SUCCEEDED((*backgroundTex)->LockRect(0, &tlr, &tdr, 0)))
-    {
-        DWORD* p = (DWORD*)tlr.pBits;
-        
-        for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
-        {
-            if (map[i] == MAP_STATE_EMPTY)
-            {
-                p[i] = maskP[i];
-            }
-            if (map[i] == MAP_STATE_EDGE)
-            {
-                p[i] = D3DCOLOR_ARGB(255, 255, 0, 0);
-            }
-        }
 
-
-        (*backgroundTex)->UnlockRect(0);
-
-    }
+    MapUpdate();
 
 
     D3DXCreateSprite(pd3dDevice, &spr);
@@ -189,37 +202,121 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
             && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EDGE)
         {
-
             playerX -= 1;
         }
+        
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EMPTY)
+        {
+            map[playerY * BACKGROUND_WIDTH + (playerX - 1)] = MAP_STATE_VISITING;
+            playerX -= 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EMPTY)
+        {
+            map[playerY * BACKGROUND_WIDTH + (playerX - 1)] = MAP_STATE_VISITING;
+            playerX -= 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EDGE)
+        {
+            playerX -= 1;
+            // ¶¥ ¾ò±â
+        }
+
     }
-    if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) != 0)
+    else if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) != 0)
     {
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
             && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EDGE)
         {
-
             playerX += 1;
         }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EMPTY)
+        {
+            map[playerY * BACKGROUND_WIDTH + (playerX + 1)] = MAP_STATE_VISITING;
+            playerX += 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EMPTY)
+        {
+            map[playerY * BACKGROUND_WIDTH + (playerX + 1)] = MAP_STATE_VISITING;
+            playerX += 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EDGE)
+        {
+            playerX += 1;
+            // ¶¥ ¾ò±â
+        }
     }
-    if ((GetAsyncKeyState(VK_UP) & 0x8000) != 0)
+    else if ((GetAsyncKeyState(VK_UP) & 0x8000) != 0)
     {
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
             && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
         {
-
             playerY -= 1;
         }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY)
+        {
+            map[(playerY - 1) * BACKGROUND_WIDTH + playerX] = MAP_STATE_VISITING;
+            playerY -= 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY)
+        {
+            map[(playerY - 1) * BACKGROUND_WIDTH + playerX] = MAP_STATE_VISITING;
+            playerY -= 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
+        {
+            playerY -= 1;
+            // ¶¥ ¾ò±â
+        }
     }
-    if ((GetAsyncKeyState(VK_DOWN) & 0x8000) != 0)
+    else if ((GetAsyncKeyState(VK_DOWN) & 0x8000) != 0)
     {
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
             && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
         {
-
             playerY += 1;
         }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY)
+        {
+            map[(playerY + 1) * BACKGROUND_WIDTH + playerX] = MAP_STATE_VISITING;
+            playerY += 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY)
+        {
+            map[(playerY + 1) * BACKGROUND_WIDTH + playerX] = MAP_STATE_VISITING;
+            playerY += 1;
+        }
+
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
+            && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
+        {
+            playerY += 1;
+            // ¶¥ ¾ò±â
+        }
     }
+
+
+    MapUpdate();
 
 }
 
