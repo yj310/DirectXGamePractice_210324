@@ -6,11 +6,20 @@
 #include "DXUT.h"
 #include "resource.h"
 
+#define WINDOW_WIDTH 1920
+#define WINDOW_HEIGHT 1080
+
+#define BACKGROUND_WIDTH 740
+#define BACKGROUND_HEIGHT 932
+
 
 LPDIRECT3DTEXTURE9* backgroundTex;
 LPDIRECT3DTEXTURE9* maskTex;
 
 LPD3DXSPRITE spr;
+
+
+int maskP[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
 
 
@@ -69,6 +78,34 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
         , nullptr
         , nullptr
         , maskTex);
+
+
+    RECT tdr = { 0, 0, BACKGROUND_WIDTH, BACKGROUND_HEIGHT };
+    D3DLOCKED_RECT tlr;
+    
+    if (SUCCEEDED((*maskTex)->LockRect(0, &tlr, &tdr, 0)))
+    {
+
+        DWORD* p = (DWORD*)tlr.pBits;
+        memcpy(maskP, p, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * 4);
+
+        (*maskTex)->UnlockRect(0);
+
+    }
+    
+    if (SUCCEEDED((*backgroundTex)->LockRect(0, &tlr, &tdr, 0)))
+    {
+        DWORD* p = (DWORD*)tlr.pBits;
+        for (int y = 100; y < 300; y++)
+        {
+            for (int x = 100; x < 500; x++)
+            {
+                p[y * BACKGROUND_WIDTH + x] = maskP[y * BACKGROUND_WIDTH + x];
+            }
+        }
+        (*backgroundTex)->UnlockRect(0);
+
+    }
 
 
     D3DXCreateSprite(pd3dDevice, &spr);
@@ -149,7 +186,7 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, int )
     DXUTSetHotkeyHandling( true, true, true );  // handle the default hotkeys
     DXUTSetCursorSettings( true, true ); // Show the cursor and clip it when in full screen
     DXUTCreateWindow( L"GameExam" );
-    DXUTCreateDevice( true, 1920, 1080 );
+    DXUTCreateDevice( true, WINDOW_WIDTH, WINDOW_HEIGHT );
 
     DXUTMainLoop();
 
