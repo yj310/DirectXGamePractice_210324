@@ -30,8 +30,8 @@ LPDIRECT3DTEXTURE9* player;
 
 LPD3DXSPRITE spr;
 
-float playerX = 100;
-float playerY = 300;
+int playerX = 100;
+int playerY = 300;
 
 
 int maskP[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
@@ -150,15 +150,7 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
     if (SUCCEEDED((*backgroundTex)->LockRect(0, &tlr, &tdr, 0)))
     {
         DWORD* p = (DWORD*)tlr.pBits;
-        /*for (int y = 100; y < 300; y++)
-        {
-            for (int x = 100; x < 500; x++)
-            {
-                p[y * BACKGROUND_WIDTH + x] = maskP[y * BACKGROUND_WIDTH + x];
-            }
-        }*/
-
-
+        
         for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
         {
             if (map[i] == MAP_STATE_EMPTY)
@@ -192,6 +184,43 @@ HRESULT CALLBACK OnD3D9ResetDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFA
 
 void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext )
 {
+    if ((GetAsyncKeyState(VK_LEFT) & 0x8000)!= 0)
+    {
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EDGE)
+        {
+
+            playerX -= 1;
+        }
+    }
+    if ((GetAsyncKeyState(VK_RIGHT) & 0x8000) != 0)
+    {
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EDGE)
+        {
+
+            playerX += 1;
+        }
+    }
+    if ((GetAsyncKeyState(VK_UP) & 0x8000) != 0)
+    {
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
+        {
+
+            playerY -= 1;
+        }
+    }
+    if ((GetAsyncKeyState(VK_DOWN) & 0x8000) != 0)
+    {
+        if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
+            && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
+        {
+
+            playerY += 1;
+        }
+    }
+
 }
 
 
@@ -208,7 +237,7 @@ void CALLBACK OnD3D9FrameRender( IDirect3DDevice9* pd3dDevice, double fTime, flo
         spr->Begin(D3DXSPRITE_ALPHABLEND);
         spr->Draw(*backgroundTex, nullptr, nullptr, nullptr, D3DCOLOR_ARGB(255, 255, 255, 255));
 
-        D3DXVECTOR3 pos = { playerX, playerY, 0 };
+        D3DXVECTOR3 pos = { (float)playerX, (float)playerY, 0 };
         D3DXVECTOR3 cen = { 2, 2, 0 };
 
         spr->Draw(*player, nullptr, &cen, &pos, D3DCOLOR_ARGB(255, 255, 255, 255));
