@@ -17,6 +17,7 @@
 #define MAP_STATE_EDGE 2
 #define MAP_STATE_VISITING 3
 #define MAP_STATE_VIRTUAR_EMPTY 4
+#define MAP_STATE_TEMP 5
 
 
 enum PlayerState {
@@ -36,30 +37,32 @@ int playerY = 300;
 
 
 int maskP[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
+int backP[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 int map[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
 
 int fMap[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
+int binaryMap[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
-void FloodFill(int x, int y)
+void FloodFill(int x, int y, int s, int n)
 {
-    if (x >= 10 || x < 0 || y >= 500 || y < 0)
+    if (x >= BACKGROUND_WIDTH || x < 0 || y >= BACKGROUND_HEIGHT || y < 0)
     {
         return;
     }
-    if (fMap[y * BACKGROUND_WIDTH + x] == MAP_STATE_VIRTUAR_EMPTY)
+    if (fMap[y * BACKGROUND_WIDTH + x] == s)
     {
-        fMap[y * BACKGROUND_WIDTH + x] = MAP_STATE_EMPTY;
+        fMap[y * BACKGROUND_WIDTH + x] = n;
     }
     else
     {
         return;
     }
 
-    FloodFill(x - 1, y);
-    FloodFill(x + 1, y);
-    FloodFill(x, y - 1);
-    FloodFill(x, y + 1);
+    FloodFill(x - 1, y, s, n);
+    FloodFill(x + 1, y, s, n);
+    FloodFill(x, y - 1, s, n);
+    FloodFill(x, y + 1, s, n);
 
 }
 
@@ -77,7 +80,7 @@ void GetLend()
             fMap[i] = MAP_STATE_VISITING;
     }
 
-    FloodFill(0, 0);
+    FloodFill(2, 2, MAP_STATE_VIRTUAR_EMPTY, MAP_STATE_EMPTY);
 
     for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
     {
@@ -85,11 +88,37 @@ void GetLend()
         {
             fMap[i] = MAP_STATE_VISITED;
         }
+        if (fMap[i] == MAP_STATE_VISITING)
+        {
+            fMap[i] = MAP_STATE_EDGE;
+        }
     }
-    for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
+
+    /*for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
     {
         map[i] = fMap[i];
+    }*/
+
+    memcpy(map, fMap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * sizeof(int));
+
+
+    int discoveredPixelCount = 0;
+
+    for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; ++i)
+    {
+        if (map[i] == MAP_STATE_EMPTY)
+        {
+            binaryMap[i] = MAP_STATE_EMPTY;
+        }
+        else
+        {
+            discoveredPixelCount++;
+            binaryMap[i] = MAP_STATE_VISITED;
+        }
     }
+
+    memcpy(map, binaryMap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * sizeof(int));
+
 }
 
 void MapUpdate()
@@ -115,6 +144,10 @@ void MapUpdate()
             if (map[i] == MAP_STATE_VISITING)
             {
                 p[i] = D3DCOLOR_ARGB(255, 0, 0, 255);
+            }
+            if (map[i] == MAP_STATE_VISITED)
+            {
+                p[i] = backP[i];
             }
         }
 
@@ -229,6 +262,16 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
         memcpy(maskP, p, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * 4);
 
         (*maskTex)->UnlockRect(0);
+
+    }
+
+    if (SUCCEEDED((*backgroundTex)->LockRect(0, &tlr, &tdr, 0)))
+    {
+
+        DWORD* p = (DWORD*)tlr.pBits;
+        memcpy(backP, p, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * 4);
+
+        (*backgroundTex)->UnlockRect(0);
 
     }
 
