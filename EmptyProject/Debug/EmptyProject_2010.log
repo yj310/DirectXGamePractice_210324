@@ -1,3 +1,2 @@
 ﻿  EmptyProject.cpp
-D:\2021\2021년도 게임기능대회\Project\DirectXGamePractice_210324\EmptyProject\EmptyProject.cpp(112,9): warning C4189: 'b': 지역 변수가 초기화되었으나 참조되지 않았습니다.
   EmptyProject_2010.vcxproj -> D:\2021\2021년도 게임기능대회\Project\DirectXGamePractice_210324\EmptyProject\Debug\EmptyProject.exe

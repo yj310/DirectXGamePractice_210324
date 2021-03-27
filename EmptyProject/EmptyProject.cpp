@@ -45,8 +45,8 @@ LPDIRECT3DTEXTURE9* player;
 
 LPD3DXSPRITE spr;
 
-int playerX = 100;
-int playerY = 300;
+int playerX = BACKGROUND_WIDTH / 2;
+int playerY = BACKGROUND_HEIGHT - 1;
 
 
 int maskP[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
@@ -79,7 +79,7 @@ void FloodFill(int x, int y, int s, int n)
     FloodFill(x, y + 1, s, n);
 
     */
-    int a = 0;
+
     stack<Point> points;
     points.push(Point(x, y));
 
@@ -97,7 +97,6 @@ void FloodFill(int x, int y, int s, int n)
         if (fMap[p.y * BACKGROUND_WIDTH + p.x] == s && fMap[p.y * BACKGROUND_WIDTH + p.x] != n)
         {
             fMap[p.y * BACKGROUND_WIDTH + p.x] = n;
-            a++;
         }
         else
         {
@@ -109,7 +108,145 @@ void FloodFill(int x, int y, int s, int n)
         points.push(Point(p.x, p.y-1));
         points.push(Point(p.x, p.y+1));
     }
-    int b = 0;
+}
+/*
+void UpdateEdge()
+{
+    for (int y = 0; y < BACKGROUND_HEIGHT; y++)
+    {
+        for (int x = 0; x < BACKGROUND_WIDTH; x++)
+        {
+            if (map[y * BACKGROUND_WIDTH + x] == MAP_STATE_VISITED)
+            {
+                int top_left        = (y - 1) * BACKGROUND_WIDTH + (x - 1);
+                int top             = (y - 1) * BACKGROUND_WIDTH + (x);
+                int top_right       = (y - 1) * BACKGROUND_WIDTH + (x + 1);
+                int midle_left      = (y) * BACKGROUND_WIDTH + (x - 1);
+                int midle_right     = (y) * BACKGROUND_WIDTH + (x + 1);
+                int bottom_left     = (y + 1) * BACKGROUND_WIDTH + (x - 1);
+                int bottom          = (y + 1) * BACKGROUND_WIDTH + (x);
+                int bottom_right    = (y + 1) * BACKGROUND_WIDTH + (x + 1);
+
+                if (y > 0)
+                {
+                    if (x > 0 && map[top_left] == MAP_STATE_EMPTY)
+                    {
+                        map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                        continue;
+                    }
+                    if (map[top] == MAP_STATE_EMPTY)
+                    {
+                        map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                        continue;
+                    }
+                    if (x < BACKGROUND_WIDTH - 1 && map[top_right] == MAP_STATE_EMPTY)
+                    {
+                        map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                        continue;
+                    }
+                }
+                
+                
+                if (x > 0 && map[midle_left] == MAP_STATE_EMPTY)
+                {
+                    map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                    continue;
+                }
+                if (x < BACKGROUND_WIDTH - 1 && map[midle_right] == MAP_STATE_EMPTY)
+                {
+                    map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                    continue;
+                }
+
+                if (y < BACKGROUND_HEIGHT - 1)
+                {
+                    if (x > 0 && map[bottom_left] == MAP_STATE_EMPTY)
+                    {
+                        map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                        continue;
+                    }
+                    if (map[bottom] == MAP_STATE_EMPTY)
+                    {
+                        map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                        continue;
+                    }
+                    if (x < BACKGROUND_WIDTH - 1 && map[bottom_right] == MAP_STATE_EMPTY)
+                    {
+                        map[y * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+                        continue;
+                    }
+                }
+                
+
+            }
+        }
+    }
+}
+*/
+void UpdateEdge()
+{
+    for (int y = 0; y < BACKGROUND_HEIGHT; y++)
+    {
+        for (int x = 0; x < BACKGROUND_WIDTH; x++)
+        {
+            if (map[y * BACKGROUND_WIDTH + x] == MAP_STATE_EDGE)
+            {
+                int top_left = (y - 1) * BACKGROUND_WIDTH + (x - 1);
+                int top = (y - 1) * BACKGROUND_WIDTH + (x);
+                int top_right = (y - 1) * BACKGROUND_WIDTH + (x + 1);
+                int midle_left = (y)*BACKGROUND_WIDTH + (x - 1);
+                int midle_right = (y)*BACKGROUND_WIDTH + (x + 1);
+                int bottom_left = (y + 1) * BACKGROUND_WIDTH + (x - 1);
+                int bottom = (y + 1) * BACKGROUND_WIDTH + (x);
+                int bottom_right = (y + 1) * BACKGROUND_WIDTH + (x + 1);
+
+                if (y > 0)
+                {
+                    if (x > 0 && map[top_left] == MAP_STATE_EMPTY)
+                    {
+                        continue;
+                    }
+                    if (map[top] == MAP_STATE_EMPTY)
+                    {
+                        continue;
+                    }
+                    if (x < BACKGROUND_WIDTH - 1 && map[top_right] == MAP_STATE_EMPTY)
+                    {
+                        continue;
+                    }
+                }
+
+
+                if (x > 0 && map[midle_left] == MAP_STATE_EMPTY)
+                {
+                    continue;
+                }
+                if (x < BACKGROUND_WIDTH - 1 && map[midle_right] == MAP_STATE_EMPTY)
+                {
+                    continue;
+                }
+
+                if (y < BACKGROUND_HEIGHT - 1)
+                {
+                    if (x > 0 && map[bottom_left] == MAP_STATE_EMPTY)
+                    {
+                        continue;
+                    }
+                    if (map[bottom] == MAP_STATE_EMPTY)
+                    {
+                        continue;
+                    }
+                    if (x < BACKGROUND_WIDTH - 1 && map[bottom_right] == MAP_STATE_EMPTY)
+                    {
+                        continue;
+                    }
+                }
+
+
+                map[y * BACKGROUND_WIDTH + x] = MAP_STATE_VISITED;
+            }
+        }
+    }
 }
 
 void GetLend()
@@ -127,7 +264,7 @@ void GetLend()
     }
 
     FloodFill(2, 2, MAP_STATE_VIRTUAR_EMPTY, MAP_STATE_EMPTY);
-
+    
     for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
     {
         if (fMap[i] == MAP_STATE_VIRTUAR_EMPTY)
@@ -147,7 +284,7 @@ void GetLend()
 
     memcpy(map, fMap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * sizeof(int));
 
-
+    /*
     int discoveredPixelCount = 0;
 
     for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; ++i)
@@ -163,7 +300,9 @@ void GetLend()
         }
     }
 
-    memcpy(map, binaryMap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * sizeof(int));
+    memcpy(map, binaryMap, BACKGROUND_WIDTH * BACKGROUND_HEIGHT * sizeof(int));*/
+
+    UpdateEdge();
 
 }
 
@@ -229,6 +368,7 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
     {
         map[i] = MAP_STATE_EMPTY;
     }
+    /*
     for (int y = 300; y <= 500; y++)
     {
         for (int x = 100; x <= 500; x++)
@@ -246,6 +386,18 @@ HRESULT CALLBACK OnD3D9CreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURF
     {
         map[300 * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
         map[500 * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+    }
+    */
+
+    for (int y = 0; y <= BACKGROUND_HEIGHT; y++)
+    {
+        map[y * BACKGROUND_WIDTH + 0] = MAP_STATE_EDGE;
+        map[y * BACKGROUND_WIDTH + (BACKGROUND_WIDTH - 1)] = MAP_STATE_EDGE;
+    }
+    for (int x = 0; x <= BACKGROUND_WIDTH; x++)
+    {
+        map[0 * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
+        map[(BACKGROUND_HEIGHT - 1) * BACKGROUND_WIDTH + x] = MAP_STATE_EDGE;
     }
 
 
@@ -348,7 +500,8 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
         }
         
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
-            && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EMPTY)
+            && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EMPTY
+            && (GetAsyncKeyState(VK_SPACE) && 0x8000 != 0))
         {
             map[playerY * BACKGROUND_WIDTH + (playerX - 1)] = MAP_STATE_VISITING;
             playerX -= 1;
@@ -378,7 +531,8 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
         }
 
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
-            && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EMPTY)
+            && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EMPTY
+            && (GetAsyncKeyState(VK_SPACE) && 0x8000 != 0))
         {
             map[playerY * BACKGROUND_WIDTH + (playerX + 1)] = MAP_STATE_VISITING;
             playerX += 1;
@@ -407,7 +561,8 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
         }
 
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
-            && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY)
+            && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY
+            && (GetAsyncKeyState(VK_SPACE) && 0x8000 != 0))
         {
             map[(playerY - 1) * BACKGROUND_WIDTH + playerX] = MAP_STATE_VISITING;
             playerY -= 1;
@@ -436,7 +591,8 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
         }
 
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE
-            && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY)
+            && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EMPTY
+            && (GetAsyncKeyState(VK_SPACE) && 0x8000 != 0))
         {
             map[(playerY + 1) * BACKGROUND_WIDTH + playerX] = MAP_STATE_VISITING;
             playerY += 1;
