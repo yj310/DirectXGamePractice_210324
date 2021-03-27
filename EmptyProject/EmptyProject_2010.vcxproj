@@ -159,7 +159,8 @@
       <TargetMachine>MachineX86</TargetMachine>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
-      <StackReserveSize>335544320</StackReserveSize>
+      <StackReserveSize>
+      </StackReserveSize>
     </Link>
     <Manifest>
       <EnableDPIAwareness>true</EnableDPIAwareness>

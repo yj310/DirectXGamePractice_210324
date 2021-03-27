@@ -5,6 +5,9 @@
 //--------------------------------------------------------------------------------------
 #include "DXUT.h"
 #include "resource.h"
+#include <stack>
+
+using namespace std;
 
 #define WINDOW_WIDTH 1920
 #define WINDOW_HEIGHT 1080
@@ -19,6 +22,16 @@
 #define MAP_STATE_VIRTUAR_EMPTY 4
 #define MAP_STATE_TEMP 5
 
+
+struct Point
+{
+    int x;
+    int y;
+    Point(int xx, int yy)
+        :x(xx), y(yy)
+    {
+    }
+};
 
 enum PlayerState {
     ON_EDGE,
@@ -46,6 +59,7 @@ int binaryMap[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
 void FloodFill(int x, int y, int s, int n)
 {
+    /*
     if (x >= BACKGROUND_WIDTH || x < 0 || y >= BACKGROUND_HEIGHT || y < 0)
     {
         return;
@@ -64,6 +78,38 @@ void FloodFill(int x, int y, int s, int n)
     FloodFill(x, y - 1, s, n);
     FloodFill(x, y + 1, s, n);
 
+    */
+    int a = 0;
+    stack<Point> points;
+    points.push(Point(x, y));
+
+
+    while (!points.empty())
+    {
+        const Point p = points.top();
+        points.pop();
+
+        if (p.x < 0) continue;
+        if (p.x >= BACKGROUND_WIDTH) continue;
+        if (p.y < 0) continue;
+        if (p.y >= BACKGROUND_HEIGHT) continue;
+
+        if (fMap[p.y * BACKGROUND_WIDTH + p.x] == s && fMap[p.y * BACKGROUND_WIDTH + p.x] != n)
+        {
+            fMap[p.y * BACKGROUND_WIDTH + p.x] = n;
+            a++;
+        }
+        else
+        {
+            continue;
+        }
+
+        points.push(Point(p.x - 1, p.y));
+        points.push(Point(p.x + 1, p.y));
+        points.push(Point(p.x, p.y-1));
+        points.push(Point(p.x, p.y+1));
+    }
+    int b = 0;
 }
 
 void GetLend()
