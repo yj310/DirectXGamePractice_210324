@@ -16,6 +16,7 @@
 #define MAP_STATE_VISITED 1
 #define MAP_STATE_EDGE 2
 #define MAP_STATE_VISITING 3
+#define MAP_STATE_VIRTUAR_EMPTY 4
 
 
 enum PlayerState {
@@ -38,23 +39,57 @@ int maskP[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 int map[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
 
+int fMap[BACKGROUND_WIDTH * BACKGROUND_HEIGHT];
 
-bool CALLBACK IsD3D9DeviceAcceptable( D3DCAPS9* pCaps, D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat,
-                                      bool bWindowed, void* pUserContext )
+void FloodFill(int x, int y)
 {
-    IDirect3D9* pD3D = DXUTGetD3D9Object();
-    if( FAILED( pD3D->CheckDeviceFormat( pCaps->AdapterOrdinal, pCaps->DeviceType,
-                                         AdapterFormat, D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING,
-                                         D3DRTYPE_TEXTURE, BackBufferFormat ) ) )
-        return false;
+    if (x >= 10 || x < 0 || y >= 500 || y < 0)
+    {
+        return;
+    }
+    if (fMap[y * BACKGROUND_WIDTH + x] == MAP_STATE_VIRTUAR_EMPTY)
+    {
+        fMap[y * BACKGROUND_WIDTH + x] = MAP_STATE_EMPTY;
+    }
+    else
+    {
+        return;
+    }
 
-    return true;
+    FloodFill(x - 1, y);
+    FloodFill(x + 1, y);
+    FloodFill(x, y - 1);
+    FloodFill(x, y + 1);
+
 }
 
-
-bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* pUserContext )
+void GetLend()
 {
-    return true;
+    for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
+    {
+        if (map[i] == MAP_STATE_EMPTY)
+            fMap[i] = MAP_STATE_VIRTUAR_EMPTY;
+        if (map[i] == MAP_STATE_VISITED)
+            fMap[i] = MAP_STATE_VISITED;
+        if (map[i] == MAP_STATE_EDGE)
+            fMap[i] = MAP_STATE_EDGE;
+        if (map[i] == MAP_STATE_VISITING)
+            fMap[i] = MAP_STATE_VISITING;
+    }
+
+    FloodFill(0, 0);
+
+    for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
+    {
+        if (fMap[i] == MAP_STATE_VIRTUAR_EMPTY)
+        {
+            fMap[i] = MAP_STATE_VISITED;
+        }
+    }
+    for (int i = 0; i < BACKGROUND_WIDTH * BACKGROUND_HEIGHT; i++)
+    {
+        map[i] = fMap[i];
+    }
 }
 
 void MapUpdate()
@@ -87,6 +122,24 @@ void MapUpdate()
         (*backgroundTex)->UnlockRect(0);
 
     }
+}
+
+bool CALLBACK IsD3D9DeviceAcceptable( D3DCAPS9* pCaps, D3DFORMAT AdapterFormat, D3DFORMAT BackBufferFormat,
+                                      bool bWindowed, void* pUserContext )
+{
+    IDirect3D9* pD3D = DXUTGetD3D9Object();
+    if( FAILED( pD3D->CheckDeviceFormat( pCaps->AdapterOrdinal, pCaps->DeviceType,
+                                         AdapterFormat, D3DUSAGE_QUERY_POSTPIXELSHADER_BLENDING,
+                                         D3DRTYPE_TEXTURE, BackBufferFormat ) ) )
+        return false;
+
+    return true;
+}
+
+
+bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* pUserContext )
+{
+    return true;
 }
 
 
@@ -222,8 +275,8 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
         if (map[playerY * BACKGROUND_WIDTH + playerX] == MAP_STATE_VISITING
             && map[playerY * BACKGROUND_WIDTH + (playerX - 1)] == MAP_STATE_EDGE)
         {
+            GetLend();
             playerX -= 1;
-            // ¶¥ ¾ò±â
         }
 
     }
@@ -253,7 +306,7 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
             && map[playerY * BACKGROUND_WIDTH + (playerX + 1)] == MAP_STATE_EDGE)
         {
             playerX += 1;
-            // ¶¥ ¾ò±â
+            GetLend();
         }
     }
     else if ((GetAsyncKeyState(VK_UP) & 0x8000) != 0)
@@ -282,7 +335,7 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
             && map[(playerY - 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
         {
             playerY -= 1;
-            // ¶¥ ¾ò±â
+            GetLend();
         }
     }
     else if ((GetAsyncKeyState(VK_DOWN) & 0x8000) != 0)
@@ -311,10 +364,9 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
             && map[(playerY + 1) * BACKGROUND_WIDTH + playerX] == MAP_STATE_EDGE)
         {
             playerY += 1;
-            // ¶¥ ¾ò±â
+            GetLend();
         }
     }
-
 
     MapUpdate();
 
